@@ -387,6 +387,46 @@ public class Solution {
 }
 ```
 
+## [155. 最小栈](https://leetcode-cn.com/problems/min-stack/)
+
+**辅助栈**
+
+- 只需要设计一个数据结构，使得每个元素 a 与其相应的最小值 m 时刻保持一一对应。因此我们可以使用一个辅助栈，与元素栈同步插入与删除，用于存储与每个元素对应的最小值
+- 当一个元素要入栈时，我们取当前辅助栈的栈顶存储的最小值，与当前元素比较得出最小值，将这个最小值插入辅助栈中；
+- 当一个元素要出栈时，我们把辅助栈的栈顶元素也一并弹出
+- 在任意一个时刻，栈内元素的最小值就存储在辅助栈的栈顶元素中
+
+```java
+class MinStack {
+    Deque<Integer> stack;
+    Deque<Integer> minStack;
+
+    public MinStack() {
+        stack = new LinkedList<Integer>();
+        minStack = new LinkedList<Integer>();
+        minStack.push(Integer.MAX_VALUE);
+    }
+    
+    public void push(int val) {
+        stack.push(val);
+        minStack.push(Math.min(minStack.peek(), val));
+    }
+    
+    public void pop() {
+        stack.pop();
+        minStack.pop();
+    }
+    
+    public int top() {
+        return stack.peek();
+    }
+    
+    public int getMin() {
+        return minStack.peek();
+    }
+}
+```
+
 ## [160. 相交链表](https://leetcode-cn.com/problems/intersection-of-two-linked-lists/)
 
 **哈希表**
@@ -455,6 +495,30 @@ class Solution {
             }
         }
         return -1;
+    }
+}
+```
+
+## [206. 反转链表](https://leetcode-cn.com/problems/reverse-linked-list/)
+
+**感觉不太好理解，哎**
+
+**以后涉及链表操作的时候，一定要在纸上画出来**
+
+在遍历列表时，将当前节点的next 指针改为指向前一个元素。由于节点没有引用其上一个节点，因此必须事先存储其前一个元素。在更改引用之前，还需要另一个指针来存储下一个节点。不要忘记在最后返回新的头引用！
+
+```java
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        ListNode cur = null;
+        ListNode pre = head;
+        while(pre != null){
+            ListNode tmp = pre.next;
+            pre.next = cur;
+            cur = pre;
+            pre = tmp;
+        }
+        return cur;
     }
 }
 ```
@@ -539,6 +603,29 @@ class Solution {
 }
 ```
 
+## [283. 移动零](https://leetcode-cn.com/problems/move-zeroes/)
+
+好巧妙
+
+- 我们创建两个指针i和j，第一次遍历的时候指针j用来记录当前有多少非0元素。即遍历的时候每遇到一个非0元素就将其往数组左边挪，第一次遍历完后，j指针的下标就指向了最后一个非0元素下标
+- 第二次遍历的时候，起始位置就从`j`开始到结束，将剩下的这段区域内的元素全部置为`0`。
+
+```java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int cnt = 0;
+        for(int i = 0; i < nums.length; i++){
+            if(nums[i] != 0){
+                nums[cnt++] = nums[i];
+            }
+        }
+        for(int i = cnt; i < nums.length; i++){
+            nums[i] = 0;
+        }
+    }
+}
+```
+
 ## [338. 比特位计数](https://leetcode-cn.com/problems/counting-bits/)
 
 API 战士，`Integer.bitCount(i)`返回二进制表示中1的位数
@@ -581,5 +668,82 @@ class Solution {
 }
 ```
 
+## [448. 找到所有数组中消失的数字](https://leetcode-cn.com/problems/find-all-numbers-disappeared-in-an-array/)
 
+```java
+class Solution {
+    public List<Integer> findDisappearedNumbers(int[] nums) {
+        int[] arr = new int[100005];
+        for(int i = 1; i < nums.length; i++){
+            arr[nums[i]]++;
+        }
+        List<Integer> ans = new ArrayList<>();
+        for(int i = 1; i <= nums.length; i++){
+            if(arr[i] == 0){
+                ans.add(i);
+            }
+        }
+        return ans;
+    }
+}
+```
+
+## [461. 汉明距离](https://leetcode-cn.com/problems/hamming-distance/)
+
+API 战士，主要就是`Integer.bitCount()`
+
+- 两个整数之间的汉明距离是对应位置上数字不同的位数。
+- 根据以上定义，我们使用异或运算，记为⊕，当且仅当输入位不同时输出为 1
+- 计算 *x* 和 y 之间的汉明距离，可以先计算 x*⊕*y，然后统计结果中等于 1 的位数
+
+```java
+class Solution {
+    public int hammingDistance(int x, int y) {
+        return Integer.bitCount(x^y);
+    }
+}
+```
+
+## [543. 二叉树的直径](https://leetcode-cn.com/problems/diameter-of-binary-tree/)
+
+看了好几遍，终于弄懂了，主要就是求二叉树的高度，以每个节点为根结点求左右子树的高度，然后找到最大的那个值
+
+```java
+class Solution {
+    int maxx = 0;
+    
+    public int diameterOfBinaryTree(TreeNode root) {
+        depth(root);
+        return maxx;
+    }
+
+    public int depth(TreeNode root){
+        if(root == null){
+            return 0;
+        }
+        int left = depth(root.left); // 左子树的高度
+        int right = depth(root.right); // 右子树的高度
+        maxx = Math.max(maxx, left+right); // 将每个节点最大直径(左子树深度+右子树深度)当前最大值比较并取大者
+        return Math.max(left, right)+1; // 当前节点的深度
+    }
+}
+```
+
+## [617. 合并二叉树](https://leetcode-cn.com/problems/merge-two-binary-trees/)
+
+还是有一点想不出来，但这个思路和我一样
+
+```java
+class Solution {
+    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {
+        if(root1 == null && root2 == null){
+            return null;
+        }
+        TreeNode tree = new TreeNode((root1 == null ? 0:root1.val) + (root2 == null ? 0:root2.val));
+        tree.left = mergeTrees((root1 == null ? null:root1.left), (root2 == null ? null:root2.left));
+        tree.right = mergeTrees((root1 == null ? null:root1.right), (root2 == null ? null:root2.right));
+        return tree;
+    }
+}
+```
 
