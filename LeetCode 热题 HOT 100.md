@@ -250,6 +250,28 @@ class Solution {
 
 ## [121. 买卖股票的最佳时机](https://leetcode-cn.com/problems/best-time-to-buy-and-sell-stock/)
 
+额，看评论说不用单调栈，**维护单调递减的栈，当前元素每次和栈顶元素比较，大就更新答案，小就入栈**就行，然后照着这个思路写来一下，过了
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        Deque<Integer> q = new LinkedList<>();
+        q.push(prices[0]);
+
+        int ans = 0;
+        for(int i = 1; i < prices.length; i++){
+            int tmp = q.peek();
+            if(prices[i] > tmp){
+                ans = Math.max(ans, prices[i]-tmp);
+            }else{
+                q.push(prices[i]);
+            }
+        }
+        return ans;
+    }
+}
+```
+
 **单调栈作用是:用O(n)的时间得知所有位置两边第一个比他大(或小)的数的位置。**
 
 思路：
@@ -264,14 +286,16 @@ class Solution {
     public int maxProfit(int[] prices) {
         int ans = 0;
         Deque<Integer> st = new LinkedList<>(); // 要获取首元素和尾元素，用双端队列
+        // st.getFirst()-->第一个，栈底
+        // st.getLast()-->最后一个，栈顶
 
         int[] tmp = new int[prices.length+1];
         System.arraycopy(prices, 0, tmp, 0, prices.length);
-        tmp[prices.length] = -1; // 哨兵
+        tmp[prices.length] = -1; // 哨兵，保证所有的元素出栈
 
         for (int price : tmp) {
-            while (!st.isEmpty() && st.getFirst() > price) { // 维护单调栈
-                ans = Math.max(ans, st.getFirst() - st.getLast()); // 维护最大值
+            while (!st.isEmpty() && st.getFirst() > price) { // 维护单调栈 
+                ans = Math.max(ans, st.getFirst() - st.getLast()); // 维护最大值 
                 st.pop();
             }
             st.push(price);
@@ -291,6 +315,22 @@ class Solution {
             for(int j = i+1; j < prices.length; j++){
                 ans = Math.max(ans, prices[j]-prices[i]);
             }
+        }
+        return ans;
+    }
+}
+```
+
+**贪心**，因为股票就买卖一次，那么贪心的想法很自然就是取最左最小值，取最右最大值，那么得到的差值就是最大利润
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int low = Integer.MAX_VALUE;
+        int ans = 0;
+        for(int price : prices){
+            low = Math.min(low, price); // 取最左最小价格
+            ans = Math.max(ans, price-low); // 直接取最大区间利润
         }
         return ans;
     }
@@ -743,6 +783,269 @@ class Solution {
         tree.left = mergeTrees((root1 == null ? null:root1.left), (root2 == null ? null:root2.left));
         tree.right = mergeTrees((root1 == null ? null:root1.right), (root2 == null ? null:root2.right));
         return tree;
+    }
+}
+```
+
+## ---------------------------
+
+## [11. 盛最多水的容器](https://leetcode-cn.com/problems/container-with-most-water/)
+
+**双指针**
+
+```java
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0;
+        int right = height.length-1;
+        int ans = 0;
+        while(left < right){
+            int area = Math.min(height[left], height[right])*(right-left);
+            ans = Math.max(ans, area);
+            if(height[left] > height[right]){
+                right--;
+            }else{
+                left++;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+## [19. 删除链表的倒数第 N 个结点](https://leetcode-cn.com/problems/remove-nth-node-from-end-of-list/)
+
+哈哈，被我试了4次试出来了，虽然遍历了两次
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int cnt = 0;
+        ListNode tmp = head;
+        while(tmp != null){
+            cnt++;
+            tmp = tmp.next;
+        }
+
+        if(cnt == n){
+            return head.next;
+        }
+        
+        n = cnt - n;
+        cnt = 0;
+        tmp = head;
+        ListNode pre = null;
+        while(tmp != null){
+            if(cnt == n){
+                if(pre != null){ // 判不判断都行
+                    pre.next = tmp.next;
+                }
+            }
+            cnt++;
+            pre = tmp;
+            tmp = tmp.next;
+        }
+        return head;
+    }
+}
+```
+
+快慢指针，快指针先走n步，然后快慢一起走，直到快指针走到最后
+
+要注意的是可能是要删除第一个节点，这个时候可以直接返回
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode slow = head;
+        ListNode fast = head;
+
+        while(n != 0){
+            fast = fast.next;
+            n--;
+        }
+        // 如果删除的是第一个结点，直接返回
+        if(fast == null){
+            return head.next;
+        }
+
+        while(fast.next != null){
+            slow = slow.next;
+            fast = fast.next;
+        }
+        slow.next = slow.next.next;
+        return head;
+    }
+}
+```
+
+## [98. 验证二叉搜索树](https://leetcode-cn.com/problems/validate-binary-search-tree/)
+
+哎，以前的做得题目都忘得差不多了
+
+中序遍历，然后判断是否是升序序列
+
+```java
+class Solution {
+    List<Integer> list = new ArrayList<>();
+
+    public boolean isValidBST(TreeNode root) {
+        inOrder(root);
+        for(int i = 1; i < list.size(); i++){
+            if(list.get(i-1) >= list.get(i)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void inOrder(TreeNode root){
+        if(root != null){
+            inOrder(root.left);
+            list.add(root.val);
+            inOrder(root.right);
+        }
+    }
+}
+```
+
+直接判断，不是很懂
+
+```java
+class Solution {
+    long pre = Long.MIN_VALUE;
+    public boolean isValidBST(TreeNode root) {
+        if (root == null) {
+            return true;
+        }
+        // 访问左子树
+        if (!isValidBST(root.left)) {
+            return false;
+        }
+        // 访问当前节点：如果当前节点小于等于中序遍历的前一个节点，说明不满足BST，返回 false；否则继续遍历。
+        if (root.val <= pre) {
+            return false;
+        }
+        pre = root.val;
+        // 访问右子树
+        return isValidBST(root.right);
+    }
+}
+```
+
+## [102. 二叉树的层序遍历](https://leetcode-cn.com/problems/binary-tree-level-order-traversal/)
+
+```java
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> ans = new ArrayList<>();
+        if(root == null){
+            return ans;
+        }
+
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+
+        while(!q.isEmpty()){
+            int cnt = q.size();
+            List<Integer> tmp = new ArrayList<>();
+            while(cnt > 0){
+                TreeNode cur = q.poll();
+                tmp.add(cur.val);
+
+                if(cur.left != null){
+                    q.offer(cur.left);
+                }
+                if(cur.right != null){
+                    q.offer(cur.right);
+                }
+                cnt--;
+            }
+            ans.add(tmp);
+        }
+        return ans;
+    }
+}
+```
+
+## [114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
+
+好吧，只会最简单的，思路一样，然而还是写不出
+
+```java
+class Solution {
+    List<TreeNode> list = new ArrayList<>();
+
+    public void flatten(TreeNode root) {
+        preOrder(root);
+        
+        for(int i = 1; i < list.size(); i++){
+            TreeNode pre = list.get(i-1);
+            TreeNode cur = list.get(i);
+            pre.left = null;
+            pre.right = cur;
+        }
+    }
+
+    public void preOrder(TreeNode root){
+        if(root == null){
+            return;
+        }
+        list.add(root);
+        preOrder(root.left);
+        preOrder(root.right);
+    }
+}
+```
+
+## [148. 排序链表](https://leetcode-cn.com/problems/sort-list/)
+
+排序然后再构建新链表，就不多说什么了
+
+差点连构建新链表都忘记了
+
+```java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        if(head == null){
+            return null;
+        }
+        List<Integer> list = new ArrayList<>();
+        ListNode tmp = head;
+        while(tmp != null){
+            list.add(tmp.val);
+            tmp = tmp.next;
+        }
+        Collections.sort(list);
+        ListNode ans = new ListNode(0);
+        ListNode cur = ans;
+        for(int i : list){
+            ListNode newNode = new ListNode(i);
+            cur.next = newNode;
+            cur = cur.next;
+        }
+        return ans.next;
+    }
+}
+```
+
+## [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
+
+额，第一个想到的就是用Map
+
+```java
+class Solution {
+    public int findDuplicate(int[] nums) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for(int num : nums){
+            map.put(num, map.getOrDefault(num, 0)+1);
+        }
+        for(Map.Entry<Integer, Integer> entry : map.entrySet()){
+            if(entry.getValue() != 1){
+                return entry.getKey();
+            }
+        }
+        return -1;
     }
 }
 ```
