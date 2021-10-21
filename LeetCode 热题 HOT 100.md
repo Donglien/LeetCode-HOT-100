@@ -789,6 +789,104 @@ class Solution {
 
 ## ---------------------------
 
+## [2. 两数相加](https://leetcode-cn.com/problems/add-two-numbers/)
+
+先把两个链表变成一样长，然后再套用加法模板相加即可
+
+将长度较短的链表在末尾补零使得两个连表长度相等，再一个一个元素对其相加（考虑进位）
+
+1. 获取两个链表所对应的长度
+2. 在较短的链表末尾补零
+3. 对齐相加考虑进位
+
+```java
+// 感觉这个有点小麻烦，下面那个简单些
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        // 从1开始，我说怎么老是报nullpointException
+        int n1 = 1, n2 = 1;
+        ListNode q1 = l1;
+        ListNode q2 = l2;
+        // 上面从1开始，这里要判断 q.next != null
+        while(q1.next != null){
+            n1++;
+            q1 = q1.next;
+        }
+        while(q2.next != null){
+            n2++;
+            q2 = q2.next;
+        }
+        if(n1 > n2){
+            for(int i = 1; i <= n1-n2; i++){
+                q2.next = new ListNode(0);
+                q2 = q2.next;
+            }
+        }else{
+            for(int i = 1; i <= n2-n1; i++){
+                q1.next = new ListNode(0);
+                q1 = q1.next;
+            }
+        }
+        q1 = l1;
+        q2 = l2;
+        ListNode ans = new ListNode(0);
+        ListNode cur = ans;
+        int sum = 0, carry = 0;
+        while(q1 != null || q2 != null){
+            int a = q1.val;
+            int b = q2.val;
+
+            sum = a+b+carry;
+            carry = sum / 10;
+
+            cur.next = new ListNode(sum % 10);
+            cur = cur.next;
+
+            q1 = q1.next;
+            q2 = q2.next;
+        }
+        if(carry != 0){
+            cur.next = new ListNode(carry);
+        }
+        return ans.next;
+    }
+}
+```
+
+这个简洁了许多，和【加法模板】一样的思路
+
+```java
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode ans = new ListNode(0);
+        ListNode cur = ans;
+
+        int sum = 0, carry = 0;
+        while(l1 != null || l2 != null){
+            int x = (l1 == null ? 0 : l1.val);
+            int y = (l2 == null ? 0 : l2.val);
+
+            sum = x+y+carry;
+            carry = sum / 10;
+
+            cur.next = new ListNode(sum % 10);
+            cur = cur.next;
+
+            if(l1 != null){
+                l1 = l1.next;
+            }
+            if(l2 != null){
+                l2 = l2.next;
+            }
+        }
+        if(carry != 0){
+            cur.next = new ListNode(carry);
+        }
+        return ans.next;
+    }
+}
+```
+
 ## [11. 盛最多水的容器](https://leetcode-cn.com/problems/container-with-most-water/)
 
 **双指针**
@@ -879,6 +977,100 @@ class Solution {
 }
 ```
 
+## [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+写了好久了，前面从头直接找一直有些点没有过，然后刚刚换了一种思路，就过了
+
+从头找，从后找，直接返回就行
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] ans = {-1, -1};
+        for(int i = 0; i < nums.length; i++){
+            if(nums[i] == target){
+                ans[0] = i;
+                break;
+            }
+        }
+        for(int i = nums.length-1; i >= 0; i--){
+            if(nums[i] == target){
+                ans[1] = i;
+                break;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+## [46. 全排列](https://leetcode-cn.com/problems/permutations/)
+
+**回溯法框架**
+
+写了这么久的题目，现在也终于懂一点回溯法的了，哎
+
+```java
+class Solution {
+    List<List<Integer>> ans = new LinkedList<>();
+
+    public List<List<Integer>> permute(int[] nums) {
+        LinkedList<Integer> track = new LinkedList<>();
+        backtrack(nums, track);
+        return ans;
+    }
+
+    public void backtrack(int[] nums, LinkedList<Integer> track){
+        if(track.size() == nums.length){
+            ans.add(new LinkedList(track));
+            return;
+        }
+        for(int i = 0; i < nums.length; i++){
+            if(track.contains(nums[i])){
+                continue;
+            }
+            track.add(nums[i]);
+            backtrack(nums, track);
+            track.removeLast();
+        }
+    }
+
+}
+```
+
+加个`visited`直接判断要快一些，就不用每次查找了
+
+```java
+class Solution {
+    List<List<Integer>> ans = new LinkedList<>();
+
+    public List<List<Integer>> permute(int[] nums) {
+        LinkedList<Integer> track = new LinkedList<>();
+        int[] visited = new int[nums.length];
+        backtrack(nums, track, visited);
+        return ans;
+    }
+
+    public void backtrack(int[] nums, LinkedList<Integer> track, int[] visited){
+        if(track.size() == nums.length){
+            ans.add(new LinkedList(track));
+            return;
+        }
+        for(int i = 0; i < nums.length; i++){
+            if(visited[i] == 1){
+                continue;
+            }
+            visited[i] = 1;
+            track.add(nums[i]);
+            backtrack(nums, track, visited);
+            visited[i] = 0;
+            track.removeLast();
+        }
+    }
+
+}
+```
+
 ## [98. 验证二叉搜索树](https://leetcode-cn.com/problems/validate-binary-search-tree/)
 
 哎，以前的做得题目都忘得差不多了
@@ -900,7 +1092,7 @@ class Solution {
     }
 
     public void inOrder(TreeNode root){
-        if(root != null){
+        if(root != null){ss
             inOrder(root.left);
             list.add(root.val);
             inOrder(root.right);
