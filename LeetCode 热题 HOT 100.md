@@ -1283,6 +1283,94 @@ class Solution {
 }
 ```
 
+## [208. 实现 Trie (前缀树)](https://leetcode-cn.com/problems/implement-trie-prefix-tree/)
+
+似懂非懂，好吧，其实就还是不是很十分清楚
+
+```java
+class Trie {
+    class TrieNode{
+        boolean isEnd;
+        TrieNode[] next;
+        public TrieNode(){
+            isEnd = false;
+            next = new TrieNode[26];
+        }
+    }
+
+    TrieNode root;
+    public Trie() {
+        root = new TrieNode();
+    }
+    
+    public void insert(String word) {
+        TrieNode node = root;
+        for(char c : word.toCharArray()){
+            if(node.next[c-'a'] == null){
+                node.next[c-'a'] = new TrieNode();
+            }
+            node = node.next[c-'a'];
+        }
+        node.isEnd = true;
+    }
+    
+    public boolean search(String word) {
+        TrieNode node = root;
+        for(char c : word.toCharArray()){
+            node = node.next[c-'a'];
+            if(node == null){
+                return false;
+            }
+        }
+        return node.isEnd;
+    }
+    
+    public boolean startsWith(String prefix) {
+        TrieNode node = root;
+        for(char c : prefix.toCharArray()){
+            node = node.next[c-'a'];
+            if(node == null){
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+## [236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+
+也是老题目了，记得当初也还不怎么会，到现在也好久了
+
+然而，现在也不是很清楚，主要是递归函数的作用，哎
+
+```java
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if(root == null){
+            return null;
+        }
+        if(root == p || root == q){
+            return root;
+        }
+
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+
+        if(left == null){
+            return right;
+        }
+        if(right == null){
+            return left;
+        }
+        if(left != null && right != null){
+            return root;
+        }
+        return null;
+    }
+}
+```
+
 ## [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
 
 额，第一个想到的就是用Map
@@ -1300,6 +1388,29 @@ class Solution {
             }
         }
         return -1;
+    }
+}
+```
+
+## [538. 把二叉搜索树转换为累加树](https://leetcode-cn.com/problems/convert-bst-to-greater-tree/)
+
+第一次没看懂题目。。。
+
+然后发现和中序遍历有点类似，但是没啥思路
+
+然后看题解才发现是反序的中序遍历，正序是从小到大，反序就是从大到小，累加即可
+
+```java
+class Solution {
+    int sum = 0;
+    public TreeNode convertBST(TreeNode root) {
+        if(root != null){
+            convertBST(root.right);
+            sum += root.val;
+            root.val = sum;
+            convertBST(root.left);
+        }
+        return root;
     }
 }
 ```
