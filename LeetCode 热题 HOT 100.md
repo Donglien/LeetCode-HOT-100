@@ -791,68 +791,6 @@ class Solution {
 
 ## [2. 两数相加](https://leetcode-cn.com/problems/add-two-numbers/)
 
-先把两个链表变成一样长，然后再套用加法模板相加即可
-
-将长度较短的链表在末尾补零使得两个连表长度相等，再一个一个元素对其相加（考虑进位）
-
-1. 获取两个链表所对应的长度
-2. 在较短的链表末尾补零
-3. 对齐相加考虑进位
-
-```java
-// 感觉这个有点小麻烦，下面那个简单些
-class Solution {
-    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        // 从1开始，我说怎么老是报nullpointException
-        int n1 = 1, n2 = 1;
-        ListNode q1 = l1;
-        ListNode q2 = l2;
-        // 上面从1开始，这里要判断 q.next != null
-        while(q1.next != null){
-            n1++;
-            q1 = q1.next;
-        }
-        while(q2.next != null){
-            n2++;
-            q2 = q2.next;
-        }
-        if(n1 > n2){
-            for(int i = 1; i <= n1-n2; i++){
-                q2.next = new ListNode(0);
-                q2 = q2.next;
-            }
-        }else{
-            for(int i = 1; i <= n2-n1; i++){
-                q1.next = new ListNode(0);
-                q1 = q1.next;
-            }
-        }
-        q1 = l1;
-        q2 = l2;
-        ListNode ans = new ListNode(0);
-        ListNode cur = ans;
-        int sum = 0, carry = 0;
-        while(q1 != null || q2 != null){
-            int a = q1.val;
-            int b = q2.val;
-
-            sum = a+b+carry;
-            carry = sum / 10;
-
-            cur.next = new ListNode(sum % 10);
-            cur = cur.next;
-
-            q1 = q1.next;
-            q2 = q2.next;
-        }
-        if(carry != 0){
-            cur.next = new ListNode(carry);
-        }
-        return ans.next;
-    }
-}
-```
-
 这个简洁了许多，和【加法模板】一样的思路
 
 ```java
@@ -1004,6 +942,40 @@ class Solution {
 }
 ```
 
+## [39. 组合总和](https://leetcode-cn.com/problems/combination-sum/)
+
+回溯还是有点不太会用
+
+```java
+class Solution {
+    List<List<Integer>> ans = new ArrayList<>();
+    
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        if (candidates.length == 0) {
+            return ans;
+        }
+        ArrayList<Integer> track = new ArrayList<>();
+        backtrack(candidates, 0, target, track);
+        return ans;
+    }
+
+    public void backtrack(int[] candidates, int begin, int target, ArrayList<Integer> track) {
+        if (target < 0) {
+            return;
+        }
+        if (target == 0) {
+            ans.add(new ArrayList<>(track));
+            return;
+        }
+        for (int i = begin; i < candidates.length; i++) {
+            track.add(candidates[i]);
+            backtrack(candidates, i, target - candidates[i], track);
+            track.remove(track.size()-1);
+        }
+    }
+}
+```
+
 ## [46. 全排列](https://leetcode-cn.com/problems/permutations/)
 
 **回溯法框架**
@@ -1012,29 +984,31 @@ class Solution {
 
 ```java
 class Solution {
-    List<List<Integer>> ans = new LinkedList<>();
+    List<List<Integer>> ans = new ArrayList<>();
 
     public List<List<Integer>> permute(int[] nums) {
-        LinkedList<Integer> track = new LinkedList<>();
-        backtrack(nums, track);
+        ArrayList<Integer> track = new ArrayList<>();
+        int[] visited = new int[nums.length];
+        backtrack(nums, track, visited);
         return ans;
     }
 
-    public void backtrack(int[] nums, LinkedList<Integer> track){
+    public void backtrack(int[] nums, ArrayList<Integer> track, int[] visited){
         if(track.size() == nums.length){
-            ans.add(new LinkedList(track));
+            ans.add(new ArrayList(track));
             return;
         }
         for(int i = 0; i < nums.length; i++){
-            if(track.contains(nums[i])){
+            if(visited[i] == 1){
                 continue;
             }
+            visited[i] = 1;
             track.add(nums[i]);
-            backtrack(nums, track);
-            track.removeLast();
+            backtrack(nums, track, visited);
+            visited[i] = 0;
+            track.remove(track.size()-1);
         }
     }
-
 }
 ```
 
@@ -1068,6 +1042,29 @@ class Solution {
         }
     }
 
+}
+```
+
+## [78. 子集](https://leetcode-cn.com/problems/subsets/)
+
+```java
+class Solution {
+    List<List<Integer>> ans = new ArrayList<>();
+    
+    public List<List<Integer>> subsets(int[] nums) {
+        ArrayList<Integer> path = new ArrayList<>();
+        backtrack(nums, path, 0);
+        return ans;
+    }
+
+    public void backtrack(int[] nums, ArrayList<Integer> path, int begin){
+        ans.add(new ArrayList<>(path));
+        for(int i = begin; i < nums.length; i++){
+            path.add(nums[i]);
+            backtrack(nums, path, i+1);
+            path.remove(path.size()-1);
+        }
+    }
 }
 ```
 
@@ -1160,68 +1157,6 @@ class Solution {
 }
 ```
 
-## [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
-
-老题目了，然而还是记不得了。但现在貌似也比之前理解更加深刻了一下，对于树的递归
-
-- 先中序遍历中找到根，然后根的左边为左子树，右边为右子树
-- 然后再递归下去就行了
-
-```java
-class Solution {
-    
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        TreeNode tree = build(preorder, 0, preorder.length, inorder, 0, inorder.length);
-        return tree;
-    }
-
-    public TreeNode build(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd){
-        if(preStart == preEnd){
-            return null;
-        }
-        TreeNode root = new TreeNode(preorder[preStart]);
-        int i = 0;
-        for(; i < inEnd; i++){
-            if(inorder[i] == preorder[preStart]){
-                break;
-            }
-        }
-        int leftNum = i - inStart;
-        root.left = build(preorder, preStart+1, preStart+1+leftNum, inorder, inStart, i);
-        root.right = build(preorder, preStart+1+leftNum, preEnd, inorder, i+1, inEnd);
-        return root;
-    }   
-}
-```
-
-可以改进一下，用`map`存储一下中序的下标，这样就不用每次都遍历了
-
-```java
-class Solution {
-    Map<Integer, Integer> map = new HashMap<>();
-
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        for(int i = 0; i < inorder.length; i++){
-            map.put(inorder[i], i);
-        }
-        TreeNode tree = build(preorder, 0, preorder.length, inorder, 0, inorder.length);
-        return tree;
-    }
-
-    public TreeNode build(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd){
-        if(preStart == preEnd){
-            return null;
-        }
-        TreeNode root = new TreeNode(preorder[preStart]);
-        int i = map.get(preorder[preStart]);
-        int leftNum = i - inStart;
-        root.left = build(preorder, preStart+1, preStart+1+leftNum, inorder, inStart, i);
-        root.right = build(preorder, preStart+1+leftNum, preEnd, inorder, i+1, inEnd);
-        return root;
-    }   
-}
-```
-
 ## [114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
 
 好吧，只会最简单的，思路一样，然而还是写不出
@@ -1283,94 +1218,6 @@ class Solution {
 }
 ```
 
-## [208. 实现 Trie (前缀树)](https://leetcode-cn.com/problems/implement-trie-prefix-tree/)
-
-似懂非懂，好吧，其实就还是不是很十分清楚
-
-```java
-class Trie {
-    class TrieNode{
-        boolean isEnd;
-        TrieNode[] next;
-        public TrieNode(){
-            isEnd = false;
-            next = new TrieNode[26];
-        }
-    }
-
-    TrieNode root;
-    public Trie() {
-        root = new TrieNode();
-    }
-    
-    public void insert(String word) {
-        TrieNode node = root;
-        for(char c : word.toCharArray()){
-            if(node.next[c-'a'] == null){
-                node.next[c-'a'] = new TrieNode();
-            }
-            node = node.next[c-'a'];
-        }
-        node.isEnd = true;
-    }
-    
-    public boolean search(String word) {
-        TrieNode node = root;
-        for(char c : word.toCharArray()){
-            node = node.next[c-'a'];
-            if(node == null){
-                return false;
-            }
-        }
-        return node.isEnd;
-    }
-    
-    public boolean startsWith(String prefix) {
-        TrieNode node = root;
-        for(char c : prefix.toCharArray()){
-            node = node.next[c-'a'];
-            if(node == null){
-                return false;
-            }
-        }
-        return true;
-    }
-}
-```
-
-## [236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
-
-也是老题目了，记得当初也还不怎么会，到现在也好久了
-
-然而，现在也不是很清楚，主要是递归函数的作用，哎
-
-```java
-class Solution {
-    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
-        if(root == null){
-            return null;
-        }
-        if(root == p || root == q){
-            return root;
-        }
-
-        TreeNode left = lowestCommonAncestor(root.left, p, q);
-        TreeNode right = lowestCommonAncestor(root.right, p, q);
-
-        if(left == null){
-            return right;
-        }
-        if(right == null){
-            return left;
-        }
-        if(left != null && right != null){
-            return root;
-        }
-        return null;
-    }
-}
-```
-
 ## [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
 
 额，第一个想到的就是用Map
@@ -1392,25 +1239,80 @@ class Solution {
 }
 ```
 
-## [538. 把二叉搜索树转换为累加树](https://leetcode-cn.com/problems/convert-bst-to-greater-tree/)
+## [739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
 
-第一次没看懂题目。。。
+卧槽，看了好几遍题目都不知道什么意思，最后面看题解懂题目了
 
-然后发现和中序遍历有点类似，但是没啥思路
+然后自己写出来了，暴力，两重for循坏即可。
 
-然后看题解才发现是反序的中序遍历，正序是从小到大，反序就是从大到小，累加即可
+期间有一个bug，没有考虑到中间的一种情况,中间有一个数，后面的都没有比它大的，因此没有赋值，直接跳到下一重循环了，还好用idea debug出来了
 
 ```java
 class Solution {
-    int sum = 0;
-    public TreeNode convertBST(TreeNode root) {
-        if(root != null){
-            convertBST(root.right);
-            sum += root.val;
-            root.val = sum;
-            convertBST(root.left);
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+        int idx = 0;
+        for(int i = 0; i < n; i++){
+            int flag = 0;
+            for(int j = i+1; j < n; j++){
+                if(temperatures[j] > temperatures[i]){
+                    ans[idx++] = j-i;
+                    flag = 1;
+                    break;
+                }
+            }
+            if(flag != 1){
+                ans[idx++] = 0;
+            }
         }
-        return root;
+        return ans;
+    }
+}
+```
+
+看了下人家的代码，好吧，其实我是多此一举了，直接用下标赋值就行，就避免了前面的那种情况
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+        for(int i = 0; i < n; i++){
+            for(int j = i+1; j < n; j++){
+                if(temperatures[j] > temperatures[i]){
+                    ans[i] = j-i;;
+                    break;
+                }
+            }
+        }
+        return ans;
+    }
+}
+```
+
+**单调栈**
+
+遍历整个数组，如果栈不空，且当前数字大于栈顶元素，取出栈顶元素，由于当前数字大于栈顶元素的数字，而且一定是第一个大于栈顶元素的数，直接求出下标差就是二者的距离。
+
+继续看新的栈顶元素，直到当前数字小于等于栈顶元素停止，然后将数字入栈，这样就可以一直保持递减栈，且每个数字和第一个大于它的数的距离也可以算出来。
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+
+        Stack<Integer> s = new Stack<>();
+        for(int i = 0; i < n; i++){
+            while(!s.isEmpty() && temperatures[i] > temperatures[s.peek()]){
+                int pre = s.pop();
+                ans[pre] = i-pre;
+            }
+            s.push(i);
+        }
+
+        return ans;
     }
 }
 ```
