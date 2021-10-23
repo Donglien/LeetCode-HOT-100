@@ -1160,6 +1160,68 @@ class Solution {
 }
 ```
 
+## [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+
+老题目了，然而还是记不得了。但现在貌似也比之前理解更加深刻了一下，对于树的递归
+
+- 先中序遍历中找到根，然后根的左边为左子树，右边为右子树
+- 然后再递归下去就行了
+
+```java
+class Solution {
+    
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        TreeNode tree = build(preorder, 0, preorder.length, inorder, 0, inorder.length);
+        return tree;
+    }
+
+    public TreeNode build(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd){
+        if(preStart == preEnd){
+            return null;
+        }
+        TreeNode root = new TreeNode(preorder[preStart]);
+        int i = 0;
+        for(; i < inEnd; i++){
+            if(inorder[i] == preorder[preStart]){
+                break;
+            }
+        }
+        int leftNum = i - inStart;
+        root.left = build(preorder, preStart+1, preStart+1+leftNum, inorder, inStart, i);
+        root.right = build(preorder, preStart+1+leftNum, preEnd, inorder, i+1, inEnd);
+        return root;
+    }   
+}
+```
+
+可以改进一下，用`map`存储一下中序的下标，这样就不用每次都遍历了
+
+```java
+class Solution {
+    Map<Integer, Integer> map = new HashMap<>();
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        for(int i = 0; i < inorder.length; i++){
+            map.put(inorder[i], i);
+        }
+        TreeNode tree = build(preorder, 0, preorder.length, inorder, 0, inorder.length);
+        return tree;
+    }
+
+    public TreeNode build(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd){
+        if(preStart == preEnd){
+            return null;
+        }
+        TreeNode root = new TreeNode(preorder[preStart]);
+        int i = map.get(preorder[preStart]);
+        int leftNum = i - inStart;
+        root.left = build(preorder, preStart+1, preStart+1+leftNum, inorder, inStart, i);
+        root.right = build(preorder, preStart+1+leftNum, preEnd, inorder, i+1, inEnd);
+        return root;
+    }   
+}
+```
+
 ## [114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
 
 好吧，只会最简单的，思路一样，然而还是写不出
