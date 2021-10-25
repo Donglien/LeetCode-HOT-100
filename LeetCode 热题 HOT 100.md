@@ -915,6 +915,46 @@ class Solution {
 }
 ```
 
+## [22. 括号生成](https://leetcode-cn.com/problems/generate-parentheses/)
+
+回溯法（做减法），然而还是不怎么会
+
+- 当前左右括号都有大于 0 个可以使用的时候，才产生分支；
+- 产生左分支的时候，只看当前是否还有左括号可以使用；
+- 产生右分支的时候，还受到左分支的限制，右边剩余可以使用的括号数量一定得在严格大于左边剩余的数量的时候
+- 在左边和右边剩余的括号数都等于 0 的时候结算
+
+```java
+class Solution {
+    List<String> ans = new ArrayList<>();
+
+    public List<String> generateParenthesis(int n) {
+        if(n == 0){
+            return ans;
+        }
+        dfs("", n, n);
+        return ans;
+    }
+
+    public void dfs(String cur, int left, int right){
+        if(left == 0 && right == 0){
+            ans.add(cur);
+            return;
+        }
+        if(left > right){
+            return;
+        }
+        if(left > 0){
+            dfs(cur + "(", left-1, right);
+        }
+        if(right > 0){
+            dfs(cur + ")", left, right-1);
+        }
+    }
+
+}
+```
+
 ## [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
 
 写了好久了，前面从头直接找一直有些点没有过，然后刚刚换了一种思路，就过了
@@ -1045,6 +1085,33 @@ class Solution {
 }
 ```
 
+## [49. 字母异位词分组](https://leetcode-cn.com/problems/group-anagrams/)
+
+在《编程珠玑》里面看到过，用排序，但具体怎么实现不知道
+
+使用哈希表存储每一组字母异位词，哈希表的键为一组字母异位词的标志，哈希表的值为一组字母异位词列表
+
+遍历每个字符串，对于每个字符串，得到该字符串所在的一组字母异位词的标志，将当前字符串加入该组字母异位词的列表中。
+
+遍历全部字符串之后，哈希表中的每个键值对即为一组字母异位词。
+
+```java
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for(String str : strs){
+            char[] arr = str.toCharArray();
+            Arrays.sort(arr);
+            String key = new String(arr);
+            List<String> list = map.getOrDefault(key, new ArrayList<String>());
+            list.add(str);
+            map.put(key, list);
+        }
+        return new ArrayList<List<String>>(map.values());
+    }
+}
+```
+
 ## [78. 子集](https://leetcode-cn.com/problems/subsets/)
 
 ```java
@@ -1064,6 +1131,34 @@ class Solution {
             backtrack(nums, path, i+1);
             path.remove(path.size()-1);
         }
+    }
+}
+```
+
+## [96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)
+
+动态规划，不会，再见
+
+**卡特兰数**（Catalan number）是 **组合数学** 中一个常出现在各种 **计数问题** 中的 **数列**
+
+```
+C0=1,Cn+1=2(2n+1)*Cn/(n+2)
+```
+
+数列的前几项为：1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862，...
+
+```
+例题：n 个元素进栈序列为：1，2，3，4，...，n，则有多少种出栈序列。
+```
+
+```java
+class Solution {
+    public int numTrees(int n) {
+        long c = 1;
+        for(int i = 0; i < n; i++){
+            c = (c*2*(2*i+1) / (i+2)); 
+        }
+        return (int)c;
     }
 }
 ```
@@ -1280,6 +1375,51 @@ class Solution {
 }
 ```
 
+## [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+**拓扑排序**，也是碰到了第一题关于图的问题了
+
+曾经也还算是蛮熟悉的，但现在，也都忘得差不多了，哎
+
+```java
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        int[] indegrees = new int[numCourses];
+        List<List<Integer>> adj = new ArrayList<>();
+        Queue<Integer> q = new LinkedList<>();
+		
+        // 构建邻接表
+        for(int i = 0; i < numCourses; i++){
+            adj.add(new ArrayList<>());
+        }
+		
+        // 入度表
+        for(int[] cp : prerequisites){
+            indegrees[cp[0]]++;
+            adj.get(cp[1]).add(cp[0]);
+        }
+		
+        // 拓扑排序
+        for(int i = 0; i < numCourses; i++){
+            if(indegrees[i] == 0){
+                q.offer(i);
+            }
+        }
+        while(!q.isEmpty()){
+            int tmp = q.poll();
+            numCourses--;
+            for(int cur : adj.get(tmp)){
+                indegrees[cur]--;
+                if(indegrees[cur] == 0){
+                    q.offer(cur);
+                }
+            }
+        }
+        return numCourses == 0;
+    }
+}
+```
+
 ## [208. 实现 Trie (前缀树)](https://leetcode-cn.com/problems/implement-trie-prefix-tree/)
 
 似懂非懂，好吧，其实就还是不是很十分清楚
@@ -1364,6 +1504,57 @@ class Solution {
             return root;
         }
         return null;
+    }
+}
+```
+
+## [238. 除自身以外数组的乘积](https://leetcode-cn.com/problems/product-of-array-except-self/)
+
+好吧，直接暴力，然后，然后就超时了
+
+```java
+class Solution {
+    public int[] productExceptSelf(int[] nums) {
+        int[] ans = new int[nums.length];
+        for(int i = 0; i < nums.length; i++){
+            int sum = 1;
+            for(int j = 0; j < nums.length; j++){
+                if(i != j){
+                    sum *= nums[j];
+                }
+            }
+            ans[i] = sum;
+        }
+        return ans;
+    }
+}
+```
+
+ **乘积 = 当前数左边的乘积 * 当前数右边的乘积**。想不到
+
+```java
+class Solution {
+    public int[] productExceptSelf(int[] nums) {
+        int n = nums.length;
+        int[] L = new int[n];
+        int[] R = new int[n];
+        int[] ans = new int[n];
+
+        L[0] = 1;
+        for(int i = 1; i < n; i++){
+            L[i] = nums[i-1] * L[i-1];
+        }
+
+        R[n-1] = 1;
+        for(int i = n-2; i >= 0; i--){
+            R[i] = nums[i+1]*R[i+1];
+        }
+
+        for(int i = 0; i < n; i++){
+            ans[i] = L[i]*R[i];
+        }
+
+        return ans;
     }
 }
 ```
