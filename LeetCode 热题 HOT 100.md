@@ -800,13 +800,22 @@ class Solution {
         ListNode cur = ans;
 
         int sum = 0, carry = 0;
+        
+        // while ( A 没完 || B 没完)
         while(l1 != null || l2 != null){
+            
+            // A 的当前位
             int x = (l1 == null ? 0 : l1.val);
+            // B 的当前位
             int y = (l2 == null ? 0 : l2.val);
 
+            // 和 = A 的当前位 + B 的当前位 + 进位carry
             sum = x+y+carry;
+            
+            // 进位 = 和 / 10;
             carry = sum / 10;
 
+            // 当前位 = 和 % 10;
             cur.next = new ListNode(sum % 10);
             cur = cur.next;
 
@@ -817,6 +826,8 @@ class Solution {
                 l2 = l2.next;
             }
         }
+        
+        // 判断还有进位吗
         if(carry != 0){
             cur.next = new ListNode(carry);
         }
@@ -845,6 +856,48 @@ class Solution {
             }
         }
         return ans;
+    }
+}
+```
+
+## [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
+
+回溯，还是有一点不太懂啊
+
+```java
+class Solution {
+    List<String> ans = new ArrayList<>();
+    Map<Character, String> phoneMap = new HashMap<Character, String>() {{
+        put('2', "abc");
+        put('3', "def");
+        put('4', "ghi");
+        put('5', "jkl");
+        put('6', "mno");
+        put('7', "pqrs");
+        put('8', "tuv");
+        put('9', "wxyz");
+    }};
+
+    public List<String> letterCombinations(String digits) {
+        if(digits.length() == 0){
+            return ans;
+        }
+        backtrack(new StringBuilder(), 0, digits);
+        return ans;
+    }
+
+    public void backtrack(StringBuilder combinations, int idx, String nextDigits){
+        if(idx == nextDigits.length()){
+            ans.add(combinations.toString());
+            return;
+        }
+        char ch = nextDigits.charAt(idx);
+        String tmp = phoneMap.get(ch);
+        for(int i = 0; i < tmp.length(); i++){
+            combinations.append(tmp.charAt(i));
+            backtrack(combinations, idx+1, nextDigits);
+            combinations.deleteCharAt(idx);
+        }
     }
 }
 ```
@@ -1022,36 +1075,6 @@ class Solution {
 
 写了这么久的题目，现在也终于懂一点回溯法的了，哎
 
-```java
-class Solution {
-    List<List<Integer>> ans = new ArrayList<>();
-
-    public List<List<Integer>> permute(int[] nums) {
-        ArrayList<Integer> track = new ArrayList<>();
-        int[] visited = new int[nums.length];
-        backtrack(nums, track, visited);
-        return ans;
-    }
-
-    public void backtrack(int[] nums, ArrayList<Integer> track, int[] visited){
-        if(track.size() == nums.length){
-            ans.add(new ArrayList(track));
-            return;
-        }
-        for(int i = 0; i < nums.length; i++){
-            if(visited[i] == 1){
-                continue;
-            }
-            visited[i] = 1;
-            track.add(nums[i]);
-            backtrack(nums, track, visited);
-            visited[i] = 0;
-            track.remove(track.size()-1);
-        }
-    }
-}
-```
-
 加个`visited`直接判断要快一些，就不用每次查找了
 
 ```java
@@ -1108,6 +1131,71 @@ class Solution {
             map.put(key, list);
         }
         return new ArrayList<List<String>>(map.values());
+    }
+}
+```
+
+## [56. 合并区间](https://leetcode-cn.com/problems/merge-intervals/)
+
+似懂非懂，好吧，其实还是不是很清楚
+
+```java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        // 先按照区间起始位置排序，升序排序
+        Arrays.sort(intervals, (v1, v2) -> v1[0] - v2[0]);
+        
+        int[][] res = new int[intervals.length][2];
+        int idx = -1;
+        for (int[] interval: intervals) {
+            // 如果结果数组是空的，或者当前区间的起始位置 > 结果数组中最后区间的终止位置，
+            // 则不合并，直接将当前区间加入结果数组。
+            if (idx == -1 || interval[0] > res[idx][1]) {
+                res[++idx] = interval;
+            } else {
+                // 反之将当前区间合并至结果数组的最后区间
+                res[idx][1] = Math.max(res[idx][1], interval[1]);
+            }
+        }
+        return Arrays.copyOf(res, idx + 1);
+    }
+}
+```
+
+## [62. 不同路径](https://leetcode-cn.com/problems/unique-paths/)
+
+好吧，动态规划还是不会，现在连最简单的都不会了。。
+
+由于我们每一步只能从向下或者向右移动一步，因此要想走到 (i, j)(i,j)，如果向下走一步，那么会从 (i-1, j)(i−1,j) 走过来；如果向右走一步，那么会从 (i, j-1)(i,j−1) 走过来
+
+```java
+class Solution {
+    public int uniquePaths(int m, int n) {
+        int[][] ans = new int[m][n];
+        for(int i = 0; i < m; i++){
+            ans[i][0] = 1;
+        }
+        for(int i = 0; i < n; i++){
+            ans[0][i] = 1;
+        }
+        for(int i = 1; i < m; i++){
+            for(int j = 1;j < n; j++){
+                ans[i][j] = ans[i-1][j] + ans[i][j-1];
+            }
+        }
+        return ans[m-1][n-1];
+    }
+}
+```
+
+## [75. 颜色分类](https://leetcode-cn.com/problems/sort-colors/)
+
+直接排序即可
+
+```java
+class Solution {
+    public void sortColors(int[] nums) {
+        Arrays.sort(nums);
     }
 }
 ```
@@ -1375,6 +1463,55 @@ class Solution {
 }
 ```
 
+## [200. 岛屿数量](https://leetcode-cn.com/problems/number-of-islands/)
+
+dfs模板，大佬太6了，清晰易懂
+
+```java
+class Solution {
+    int cnt = 0;
+
+    public int numIslands(char[][] grid) {
+        for(int i = 0; i < grid.length; i++){
+            for(int j = 0; j < grid[0].length; j++){
+                if(grid[i][j] == '1'){
+                    dfs(grid, i, j);
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
+
+    public void dfs(char[][] grid, int r, int c){
+        
+        // 如果坐标 (r, c) 超出了网格范围，直接返回
+        if(!inArea(grid, r, c)){
+            return;
+        }
+        
+        // 如果这个格子不是岛屿，直接返回
+        if(grid[r][c] != '1'){
+            return;
+        }
+        
+        // 将格子标记为「已遍历过」
+        grid[r][c] = 2;
+        
+        // 访问上、下、左、右四个相邻结点
+        dfs(grid, r-1, c);
+        dfs(grid, r+1, c);
+        dfs(grid, r, c-1);
+        dfs(grid, r, c+1);
+    }
+
+    // 判断坐标 (r, c) 是否在网格中
+    public boolean inArea(char[][] grid, int r, int c){
+        return 0 <= r && r < grid.length && 0 <= c && c < grid[0].length;
+    }
+}
+```
+
 ## [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
 
 **拓扑排序**，也是碰到了第一题关于图的问题了
@@ -1510,7 +1647,7 @@ class Solution {
 
 ## [238. 除自身以外数组的乘积](https://leetcode-cn.com/problems/product-of-array-except-self/)
 
-好吧，直接暴力，然后，然后就超时了
+好吧，直接暴力，然后，然后就**超时**了
 
 ```java
 class Solution {
@@ -1576,6 +1713,196 @@ class Solution {
             }
         }
         return -1;
+    }
+}
+```
+
+## [322. 零钱兑换](https://leetcode-cn.com/problems/coin-change/)
+
+直接回溯大爆搜，毫无疑问，超时了
+
+```java
+class Solution {
+    int ans = Integer.MAX_VALUE;
+
+    public int coinChange(int[] coins, int amount) {
+        if(coins.length == 0){
+            return -1;
+        }
+        dfs(coins, amount, 0);
+        if(ans == Integer.MAX_VALUE){
+            return -1;
+        }
+        return ans;
+    }
+
+    public void dfs(int[] coins, int amount, int cnt){
+        if(amount < 0){
+            return;
+        }
+        if(amount == 0){
+            ans = Math.min(ans, cnt);
+            return;
+        }
+        for(int i = 0; i < coins.length; i++){
+            backtrack(coins, amount-coins[i], cnt+1);
+        }
+    }
+}
+```
+
+记忆化搜索，不懂一大半，哎
+
+```java
+class Solution {
+    int[] memo;
+
+    public int coinChange(int[] coins, int amount) {
+        if(coins.length == 0){
+            return -1;
+        }
+        memo = new int[amount];
+        return dfs(coins, amount);
+    }
+
+    public int dfs(int[] coins, int amount){
+        if(amount < 0){
+            return -1;
+        }
+        if(amount == 0){
+            return 0;
+        }
+        if(memo[amount-1] != 0){
+            return memo[amount-1];
+        }
+        int min = Integer.MAX_VALUE;
+        for(int i = 0; i < coins.length; i++){
+            int ans = dfs(coins, amount - coins[i]);
+            if(ans >= 0 && ans < min){
+                min = ans + 1;
+            }
+        }
+        memo[amount-1] = (min == Integer.MAX_VALUE ? -1 : min);
+        return memo[amount-1];
+    }
+}
+```
+
+## [437. 路径总和 III](https://leetcode-cn.com/problems/path-sum-iii/)
+
+树的遍历，`dfs1`遍历每个结点，`dfs2`搜索以其为根的所有往下的路径，同时累加路径总和为`targetSum`的所有路径
+
+```java
+class Solution {
+    int cnt = 0;
+    int sum = 0;
+    public int pathSum(TreeNode root, int targetSum) {
+        sum = targetSum;
+        dfs1(root);
+        return cnt;
+    }
+
+    public void dfs1(TreeNode root){
+        if(root == null){
+            return;
+        }
+        dfs2(root, root.val);
+        dfs1(root.left);
+        dfs1(root.right);
+    }
+
+    public void dfs2(TreeNode root, int val){
+        if(val == sum){
+            cnt++;
+        }
+        if(root.left != null){
+            dfs2(root.left, val+root.left.val);
+        }
+        if(root.right != null){
+            dfs2(root.right, val+root.right.val);
+        }
+    }
+}
+```
+
+## [494. 目标和](https://leetcode-cn.com/problems/target-sum/)
+
+回溯，然而具体还是不知道怎么写
+
+```java
+class Solution {
+    int cnt = 0;
+
+    public int findTargetSumWays(int[] nums, int target) {
+        backtrack(nums, target, 0, 0);
+        return cnt;
+    }
+
+    public void backtrack(int[] nums, int target, int idx, int sum){
+        if(idx == nums.length){
+            if(sum == target){
+                cnt++;
+            }
+            return;
+        }
+        backtrack(nums, target, idx+1, sum+nums[idx]);
+        backtrack(nums, target, idx+1, sum-nums[idx]);
+    }
+
+}
+```
+## [538. 把二叉搜索树转换为累加树](https://leetcode-cn.com/problems/convert-bst-to-greater-tree/)
+
+第一次没看懂题目。。。
+
+然后发现和中序遍历有点类似，但是没啥思路
+
+然后看题解才发现是反序的中序遍历，正序是从小到大，反序就是从大到小，累加即可
+
+```java
+class Solution {
+    int sum = 0;
+    public TreeNode convertBST(TreeNode root) {
+        if(root != null){
+            convertBST(root.right);
+            sum += root.val;
+            root.val = sum;
+            convertBST(root.left);
+        }
+        return root;
+    }
+}
+```
+
+## [581. 最短无序连续子数组](https://leetcode-cn.com/problems/shortest-unsorted-continuous-subarray/)
+
+先拷贝一份排序，然后再找到数组两边不相同的地方即可
+
+```java
+class Solution {
+    public int findUnsortedSubarray(int[] nums) {
+        int[] tmp = Arrays.copyOf(nums, nums.length);
+        Arrays.sort(tmp);
+
+        if(Arrays.equals(nums, tmp)){
+            return 0;
+        }
+
+        int i = 0;
+        while(i < nums.length){
+            if(nums[i] != tmp[i]){
+                break;
+            }
+            i++;
+        }
+        int j = nums.length-1;
+        while(j >= 0){
+            if(nums[j] != tmp[j]){
+                break;
+            }
+            j--;
+        }
+        return j-i+1;
     }
 }
 ```
@@ -1658,25 +1985,3 @@ class Solution {
 }
 ```
 
-## [538. 把二叉搜索树转换为累加树](https://leetcode-cn.com/problems/convert-bst-to-greater-tree/)
-
-第一次没看懂题目。。。
-
-然后发现和中序遍历有点类似，但是没啥思路
-
-然后看题解才发现是反序的中序遍历，正序是从小到大，反序就是从大到小，累加即可
-
-```java
-class Solution {
-    int sum = 0;
-    public TreeNode convertBST(TreeNode root) {
-        if(root != null){
-            convertBST(root.right);
-            sum += root.val;
-            root.val = sum;
-            convertBST(root.left);
-        }
-        return root;
-    }
-}
-```
