@@ -638,6 +638,13 @@ class Solution {
             front++;
             back--;
         }
+        
+//        这样也行，arr.size()不除2也行
+//        for(int i = 0; i < arr.size()/2; i++){
+//            if(arr.get(i) != arr.get(arr.size()-1-i)){
+//                return false;
+//            }
+//        }
         return true;
     }
 }
@@ -1223,6 +1230,62 @@ class Solution {
 }
 ```
 
+## [79. 单词搜索](https://leetcode-cn.com/problems/word-search/)
+
+回溯，虽然叫我写是写不出来的
+
+```java
+class Solution {
+    int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    boolean[][] visited;
+    char[] arr;
+    int len;
+
+    public boolean exist(char[][] board, String word) {
+        if(board.length == 0){
+            return false;
+        }
+        int r = board.length;
+        int c = board[0].length;
+        visited = new boolean[r][c];
+        arr = word.toCharArray();
+        len = word.length();
+        for(int i = 0; i < r; i++){
+            for(int j = 0; j < c; j++){
+                if(dfs(board, i, j, 0)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean dfs(char[][] board, int r, int c, int begin){
+        if(begin == len-1){
+            return board[r][c] == arr[begin];
+        }
+        if(board[r][c] == arr[begin]){
+            visited[r][c] = true;
+            for(int[] dir : directions){
+                int x = r + dir[0];
+                int y = c + dir[1];
+                if(inArea(board, x, y) && !visited[x][y]){
+                    if(dfs(board, x, y, begin+1)){
+                        return true;
+                    }
+                }
+            }
+            visited[r][c] = false;
+        }
+        return false;
+    }
+
+    public boolean inArea(char[][] board, int r, int c){
+        return 0 <= r && r < board.length && 0 <= c && c < board[0].length;
+    }
+}
+```
+
 ## [96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)
 
 动态规划，不会，再见
@@ -1512,6 +1575,46 @@ class Solution {
 }
 ```
 
+也可以加个偏移量数组`direct`
+
+```java
+class Solution {
+    int cnt = 0;
+    int[][] direct = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    public int numIslands(char[][] grid) {
+        for(int i = 0; i < grid.length; i++){
+            for(int j = 0; j < grid[0].length; j++){
+                if(grid[i][j] == '1'){
+                    dfs(grid, i, j);
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
+
+    public void dfs(char[][] grid, int r, int c){
+        if(!inArea(grid, r,c)){
+            return;
+        }
+        if(grid[r][c] != '1'){
+            return;
+        }
+        grid[r][c] = 2;
+        for(int[] dir : direct){
+            int x = r + dir[0];
+            int y = c + dir[1];
+            dfs(grid, x, y);
+        }
+    }
+
+    public boolean inArea(char[][] grid, int r, int c){
+        return 0 <= r && r < grid.length && 0 <= c && c < grid[0].length;
+    }
+}
+```
+
 ## [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
 
 **拓扑排序**，也是碰到了第一题关于图的问题了
@@ -1692,6 +1795,77 @@ class Solution {
         }
 
         return ans;
+    }
+}
+```
+
+## [240. 搜索二维矩阵 II](https://leetcode-cn.com/problems/search-a-2d-matrix-ii/)
+
+首先当然是直接查找啦
+
+```java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        for(int i = 0; i < matrix.length; i++){
+            for(int j = 0; j < matrix[0].length; j++){
+                if(matrix[i][j] == target){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+```
+
+每一行用二分查找
+
+```java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        for(int[] row : matrix){
+            int ans = search(row, target);
+            if(ans != -1){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int search(int[] nums, int target){
+        int left = 0, right = nums.length-1;
+        while(left <= right){
+            int mid = left + (right-left)/2;
+            if(nums[mid] == target){
+                return mid;
+            }else if(target > nums[mid]){
+                left = mid+1;
+            }else if(target < nums[mid]){
+                right = mid-1;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+从右上角开始搜索，哎，想不到
+
+```java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        int i = 0;
+        int j = matrix[0].length-1;
+        while(i < matrix.length && j >= 0){
+            if(target == matrix[i][j]){
+                return true;
+            }else if(target > matrix[i][j]){
+                i++;
+            }else if(target < matrix[i][j]){
+                j--;
+            }
+        }
+        return false;
     }
 }
 ```
