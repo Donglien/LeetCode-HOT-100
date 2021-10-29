@@ -1031,6 +1031,9 @@ class Solution {
                 break;
             }
         }
+        if(ans[0] == -1){
+            return ans;
+        }
         for(int i = nums.length-1; i >= 0; i--){
             if(nums[i] == target){
                 ans[1] = i;
@@ -1038,6 +1041,60 @@ class Solution {
             }
         }
         return ans;
+    }
+}
+```
+
+二分搜索找左右边界
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] ans = {-1, -1};
+        ans[0] = leftBound(nums, target);
+        if(ans[0] == -1){
+            return ans;
+        }
+        ans[1] = rightBound(nums, target);
+        return ans;
+    }
+
+    public int leftBound(int[] nums, int target){
+        int left = 0;
+        int right = nums.length;
+        while(left < right){
+            int mid = left + (right-left)/2;
+            if(nums[mid] == target){
+                right = mid;
+            }else if(nums[mid] > target){
+                right = mid;
+            }else if(nums[mid] < target){
+                left = mid+1;
+            }
+        }
+        if(left == nums.length){
+            return -1;
+        }
+        return nums[left] == target ? left : -1; 
+    }
+
+    public int rightBound(int[] nums, int target){
+        int left = 0;
+        int right = nums.length;
+        while(left < right){
+            int mid = left + (right-left)/2;
+            if(nums[mid] == target){
+                left = mid+1;
+            }else if(nums[mid] > target){
+                right = mid;
+            }else if(nums[mid] < target){
+                left = mid+1;
+            }
+        }
+        if(left == 0){
+            return -1;
+        }
+        return nums[left-1] == target ? left-1:-1;
     }
 }
 ```
@@ -1111,7 +1168,6 @@ class Solution {
             track.removeLast();
         }
     }
-
 }
 ```
 
@@ -1715,6 +1771,99 @@ class Trie {
 }
 ```
 
+## [215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
+
+**堆排**
+
+```java
+// 83% 2ms
+class Solution {
+    int ans = 0;
+
+    public int findKthLargest(int[] nums, int k) {
+        heapSort(nums, k);
+        return ans;
+    }
+
+    public void heapSort(int[] arr, int k){
+        int n = arr.length-1;
+        for(int i = n/2; i >= 0; i--){
+            sink(arr, i, n);
+        }
+        while(n >= 0){
+            if(k == 0) break;
+            ans = arr[0];
+            swap(arr, 0, n--);
+            sink(arr, 0, n);
+            k--;
+        }
+    }
+
+    public void sink(int[] a, int k, int n){
+        while(2*k+1 <= n){
+            int j = 2*k+1;
+            if(j < n && a[j] < a[j+1]) j++;
+            if(a[k] > a[j]) break;
+            swap(a, j, k);
+            k = j;
+        }
+    }
+
+    public void swap(int[] a, int i, int j){
+        int tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+    }
+}
+```
+
+**快排**
+
+```java
+// 98% 1ms
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        return quickSort(nums, 0, nums.length-1, k-1);
+    }
+
+    public int quickSort(int[] nums, int low, int hight, int k){
+        int pivot = randomPartition(nums, low, hight);
+        if(pivot == k){
+            return nums[k];
+        }
+        return pivot > k ? quickSort(nums, low, pivot-1, k):quickSort(nums, pivot+1, hight, k);
+    }
+
+    public int randomPartition(int[] a, int low, int hight){
+        Random random = new Random();
+        int i = random.nextInt(hight-low+1)+low;
+        swap(a, i, low);
+        return partition(a, low, hight);
+    }
+
+    // 32% 9ms
+    public int partition(int[] a, int low, int hight){
+        int pivotKey = a[low];
+        int i = low, j = hight+1;
+        while(true){
+            while(++i < hight && a[i] > pivotKey);
+            while(--j > low && a[j] < pivotKey);
+            if(i >= j) break;
+            swap(a, i, j);
+        }
+        a[low] = a[j];
+        a[j] = pivotKey;
+        return j;
+    }
+
+    public void swap(int[] a, int i, int j) {
+        int temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
+    }
+}
+```
+
 ## [236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)
 
 也是老题目了，记得当初也还不怎么会，到现在也好久了
@@ -1958,6 +2107,34 @@ class Solution {
         }
         memo[amount-1] = (min == Integer.MAX_VALUE ? -1 : min);
         return memo[amount-1];
+    }
+}
+```
+
+## [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+
+```java
+class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer,Integer> map = new HashMap<>();
+        for(int num: nums){
+            map.put(num, map.getOrDefault(num, 0)+1);
+        }
+        Queue<Integer> q = new PriorityQueue<>((a,b) -> map.get(a)-map.get(b));
+        for(int key: map.keySet()){
+            if(q.size() < k){
+                q.offer(key);
+            }else if(map.get(key) > map.get(q.peek())){
+                q.poll();
+                q.offer(key);
+            }
+        }
+        int[] ans = new int[q.size()];
+        int idx = 0;
+        for(int i: q){
+            ans[idx++] = i;
+        }
+        return ans;
     }
 }
 ```
