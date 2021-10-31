@@ -219,18 +219,22 @@ class Solution {
 ```java
 class Solution {
     public boolean isSymmetric(TreeNode root) {
-        return isMirror(root, root);
-    }
-
-    public boolean isMirror(TreeNode root1, TreeNode root2){
-        if(root1 == null && root2 == null){
+        if(root == null){
             return true;
         }
-        if(root1 == null || root2 == null){
+        return judge(root.left, root.right);
+    }
+
+    public boolean judge(TreeNode left, TreeNode right){
+        // 如果左右子节点都为空，说明当前节点是叶子节点，返回true
+        if(left == null && right == null){
+            return true;
+        }
+        // 如果当前节点只有一个子节点或者有两个子节点，但两个子节点的值不相同，直接返回false
+        if(left == null || right == null || left.val != right.val){
             return false;
         }
-        return (root1.val == root2.val) && 
-        isMirror(root1.left, root2.right) && isMirror(root1.right, root2.left);
+        return judge(left.left, right.right) && judge(left.right, right.left);
     }
 }
 ```
@@ -646,6 +650,46 @@ class Solution {
 //            }
 //        }
         return true;
+    }
+}
+```
+
+翻转后半段，再比较
+
+```java
+class Solution {
+    public boolean isPalindrome(ListNode head) {
+        ListNode fast = head, slow = head;
+        while(fast != null && fast.next != null){
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        if(fast != null){
+            slow = slow.next;
+        }
+        slow = reverse(slow);
+
+        fast = head;
+        while(slow != null){
+            if(fast.val != slow.val){
+                return false;
+            }
+            fast = fast.next;
+            slow = slow.next;
+        }
+        return true;
+    }
+
+    public ListNode reverse(ListNode head){
+        ListNode pre = null;
+        ListNode cur = head;
+        while(cur != null){
+            ListNode next = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
     }
 }
 ```
@@ -1391,7 +1435,7 @@ class Solution {
     }
 
     public void inOrder(TreeNode root){
-        if(root != null){ss
+        if(root != null){
             inOrder(root.left);
             list.add(root.val);
             inOrder(root.right);
@@ -1420,6 +1464,26 @@ class Solution {
         pre = root.val;
         // 访问右子树
         return isValidBST(root.right);
+    }
+}
+
+class Solution {
+    TreeNode pre;
+    public boolean isValidBST(TreeNode root) {
+        if(root == null){
+            return true;
+        }
+        if(!isValidBST(root.left)){
+            return false;
+        }
+        if(pre != null && pre.val >= root.val){
+            return false;
+        }
+        pre = root;
+        if(!isValidBST(root.right)){
+            return false;
+        }
+        return true;
     }
 }
 ```
